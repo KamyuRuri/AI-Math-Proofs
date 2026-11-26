@@ -4,6 +4,7 @@
 [![Lean 4](https://img.shields.io/badge/Lean-v4.36.0-blue.svg)](https://lean-lang.org/)
 [![Mathlib4](https://img.shields.io/badge/Mathlib4-v4.36.0-brightgreen.svg)](https://github.com/leanprover-community/mathlib4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24550766.svg)](https://doi.org/10.5281/zenodo.24550766)
 
 **Authors / 作者:** Gemini, ChatGPT, and JiaZhuang Wang\* (\*Corresponding author / 通讯作者)
 
@@ -76,4 +77,19 @@ Verifies the prime-by-prime optimization, all 240 box elements → 57 with $H(m)
 cd paper
 pdflatex oeis-three-proofs.tex
 pdflatex oeis-three-proofs.tex
+```
+
+---
+
+## Citation
+
+```bibtex
+@article{wang2026oeis,
+  title   = {Resolved Conjectures on OEIS A352834, A304362, and A174013: Complete Proofs and Lean 4 Formal Verification},
+  author  = {Gemini and ChatGPT and Wang, JiaZhuang},
+  year    = {2026},
+  month   = {11},
+  doi     = {10.5281/zenodo.24550766},
+  url     = {https://doi.org/10.5281/zenodo.24550766}
+}
 ```

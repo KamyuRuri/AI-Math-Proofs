@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it using these metadata."
+title: "AI-Math-Proofs: Resolved Conjectures on OEIS A352834, A304362, and A174013"
+authors:
+  - name: "Gemini"
+  - name: "ChatGPT"
+  - family-names: "Wang"
+    given-names: "JiaZhuang"
+doi: "10.5281/zenodo.24550766"
+url: "https://doi.org/10.5281/zenodo.24550766"
+repository-code: "https://github.com/KamyuRuri/AI-Math-Proofs"
+license: MIT
+preferred-citation:
+  type: article
+  title: "Resolved Conjectures on OEIS A352834, A304362, and A174013: Complete Proofs and Lean 4 Formal Verification"
+  authors:
+    - name: "Gemini"
+    - name: "ChatGPT"
+    - family-names: "Wang"
+      given-names: "JiaZhuang"
+  doi: "10.5281/zenodo.24550766"
+  year: 2026
+  month: 11
+  url: "https://doi.org/10.5281/zenodo.24550766"
