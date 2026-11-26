@@ -1,0 +1,391 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black,
+  pdftitle={Resolved Conjectures on OEIS A352834, A304362, and A174013},
+  pdfauthor={Gemini, ChatGPT, and JiaZhuang Wang}
+}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator{\den}{den}
+
+\title{\textbf{Resolved Conjectures on OEIS A352834, A304362, and A174013:\\ Complete Proofs and Lean~4 Formal Verification}}
+\author{Gemini, ChatGPT, and JiaZhuang Wang\thanks{Corresponding author. Repository: \url{https://github.com/KamyuRuri/AI-Math-Proofs}}}
+\date{November 26, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present complete, self-contained mathematical proofs resolving three open conjectures recorded in the On-Line Encyclopedia of Integer Sequences (OEIS):
+\begin{enumerate}
+  \item For \textbf{A352834}, where $a(n)$ is the least positive integer $k$ such that the reduced denominator of $\tau(kn)/(kn)$ equals $n$, we establish via an elementary Bernoulli divisor bound that $a(n) = O_\varepsilon(n^\varepsilon)$ for every $\varepsilon > 0$ (hence $a(n)/n^\varepsilon \to 0$), and prove by exact prime-by-prime optimization and finite box elimination that $a(n)/n^{1/3}$ attains its strict global maximum $840 / 154440^{1/3} \approx 15.656428$ uniquely at $n = 154440$.
+  \item For \textbf{A304362}, defined via Möbius convolution over non-perfect-power divisors, we give an explicit Fermat-type exponent construction showing that every integer $z \in \Z$ is attained at infinitely many positive integers $n$.
+  \item For \textbf{A174013}, starting from its algebraic quadratic generating function, we derive a square-root-free first-order linear ODE, extract a $6$-th order P-recursive equation $E_n = 0$ ($n \ge 5$), and prove R.~J.~Mathar's conjectured $7$-th order recurrence via the exact operator identity $M_n = E_n + 4 E_{n-1}$, showing moreover that $M_n = 0$ holds for all $n \ge 6$ (extending the $n \ge 7$ bound stated in OEIS).
+\end{enumerate}
+All main theorems and computational exhaustions have been formally verified in Lean~4 (\texttt{v4.36.0}) with Mathlib4 using only the standard axioms \{\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}\}, without \texttt{sorry} or \texttt{native\_decide}.
+\end{abstract}
+
+\noindent\textbf{MSC 2020:} 11A25, 11B37, 05A15, 68V15.\\
+\textbf{Keywords:} OEIS conjectures, divisor function, global extremum, Möbius inversion, P-recursive sequences, Lean~4, Mathlib4.
+
+\section{Introduction and Main Results}
+
+The On-Line Encyclopedia of Integer Sequences (OEIS)~\cite{oeis} contains numerous empirical conjectures arising from computational exploration. Turning such observations into rigorous proofs often benefits from a tight synergy between analytic estimates, exact rational elimination, and formal verification. In this paper we completely resolve three OEIS conjectures—A352834, A304362, and A174013—and formalize all proofs in Lean~4~\cite{lean4} atop Mathlib4~\cite{mathlib4}.
+
+\begin{theorem}[Global Extremum and Subpolynomial Growth of A352834]\label{thm:a352834}
+Let $\tau(m)$ denote the number of positive divisors of $m \ge 1$, and let $a(n) = \mathrm{A352834}(n)$ be the least integer $k \ge 1$ for which the reduced fraction $\tau(kn)/(kn)$ has denominator $n$ (setting $a(n)=0$ if no such $k$ exists).
+\begin{enumerate}
+  \item[(a)] For every real $\varepsilon > 0$, one has $a(n) = O_\varepsilon(n^\varepsilon)$ as $n \to \infty$ (and hence $a(n)/n^\varepsilon \to 0$).
+  \item[(b)] For every integer $n \ge 1$,
+  \[
+    \frac{a(n)}{n^{1/3}} \le \frac{840}{154440^{1/3}} = 15.6564281184\dots,
+  \]
+  with equality if and only if $n = 154440$ (where $a(154440) = 840$).
+\end{enumerate}
+\end{theorem}
+
+\begin{theorem}[Infinite Fibers and Surjectivity of A304362]\label{thm:a304362}
+Let $\mathcal{P} = \{a^s : a \ge 2,\, s \ge 2\}$ be the set of non-unit perfect powers, and define
+\[
+  b(n) := \sum_{\substack{d \mid n \\ d \notin \mathcal{P}}} \mu\!\left(\frac{n}{d}\right) \qquad (n \ge 1),
+\]
+where $\mu$ is the Möbius function. For every $z \in \Z$ and every bound $M \in \N$, there exists $n > M$ such that $b(n) = z$. Consequently, $b : \N_{>0} \to \Z$ is surjective and every integer value $z \in \Z$ has an infinite fiber $\{n \ge 1 : b(n) = z\}$.
+\end{theorem}
+
+\begin{theorem}[Algebraic ODE and Holonomic Recurrences for A174013]\label{thm:a174013}
+Suppose $A(x) = \sum_{n=0}^{\infty} a_n x^n \in \Q[[x]]$ is the generating function of $\mathrm{A174013}$, satisfying $a_0 = 1$ and
+\[
+  x(1 - x - x^2) A(x)^2 + (1 - 3x - x^2) A(x) - (1 - x) = 0.
+\]
+Then:
+\begin{enumerate}
+  \item[(a)] The coefficients $a_n$ satisfy a $6$-th order P-recursive equation $E_n = 0$ for all $n \ge 5$, namely
+  \[
+    (n+1)a_n - 3na_{n-1} + (9n-24)a_{n-3} - 6a_{n-4} + (46-11n)a_{n-5} + (25-5n)a_{n-6} = 0.
+  \]
+  \item[(b)] Letting $M_n$ denote R.~J.~Mathar's conjectured $7$-th order recurrence operator for $\mathrm{A174013}$, one has the exact identity $M_n = E_n + 4 E_{n-1}$ for all $n \ge 1$. In particular, $M_n = 0$ holds for all $n \ge 6$ (extending the $n \ge 7$ conjecture in OEIS, while $M_5 = -24 \ne 0$).
+\end{enumerate}
+\end{theorem}
+
+\begin{remark}[Priority Attribution for OEIS A263160]
+An earlier draft list of open problems also included a conjecture on OEIS~\textbf{A263160}. Independent literature verification shows that a complete proof of A263160 was publicly released by Le~Duy~Phuc on November~25, 2026~\cite{phuc2026}. In accordance with academic priority norms, the present work makes no claim to A263160 and confines its contributions to Theorems~\ref{thm:a352834}--\ref{thm:a174013}.
+\end{remark}
+
+\section{Global Extremum and Subpolynomial Growth of A352834}
+
+\subsection{Denominator Reduction and Fundamental Inequality}
+
+\begin{lemma}\label{lem:a352834-iff}
+For any integers $n \ge 1$ and $k \ge 1$, write $m = kn$. Then
+\[
+  \den\!\left(\frac{\tau(kn)}{kn}\right) = n \iff \gcd(\tau(kn), kn) = k.
+\]
+Whenever this condition holds, we have $k \le \tau(m)$ and therefore
+\begin{equation}\label{eq:key-ineq}
+  \frac{k^3}{n} = \frac{k^4}{kn} = \frac{k^4}{m} \le \frac{\tau(m)^4}{m} =: H(m).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $g = \gcd(\tau(m), m)$. Since $\tau(m)/g$ and $m/g$ are coprime positive integers, the fraction $\tau(m)/m$ reduces to $(\tau(m)/g)/(m/g)$ with denominator $m/g$. Because $m = kn$ with $k,n \ge 1$, the equality $m/g = n$ is equivalent to $g = k$. In that case $k = \gcd(\tau(m), m) \mid \tau(m)$, and since $\tau(m) \ge 1$, we obtain $k \le \tau(m)$, which gives~\eqref{eq:key-ineq}.
+\end{proof}
+
+\subsection{Elementary Subpolynomial Growth Bound}
+
+Following the prime-power splitting argument popularized by Tao~\cite{tao-divisor}, we establish an explicit elementary divisor bound without appealing to analytic number theory.
+
+\begin{lemma}[Explicit Divisor Power Bound]\label{lem:divisor-bound}
+For every integer $K \ge 1$, there exists an explicit rational constant $C(K) > 0$ such that $\tau(m)^K \le C(K) m$ for all $m \ge 1$.
+\end{lemma}
+
+\begin{proof}
+Since both $\tau(m)^K$ and $m$ are multiplicative, for $m = \prod_{p} p^{e_p}$ we factor
+\[
+  \frac{\tau(m)^K}{m} = \prod_{p \mid m} \frac{(e_p + 1)^K}{p^{e_p}}.
+\]
+Let $P_K = \{p \text{ prime} : p < 2^K\}$. For every prime $p \ge 2^K$ and exponent $e \ge 0$, Bernoulli's inequality yields $2^e = (1+1)^e \ge 1 + e$, whence $p^e \ge (2^K)^e = (2^e)^K \ge (e+1)^K$, so $(e+1)^K / p^e \le 1$. For each of the finitely many primes $p < 2^K$, the ratio $((e+2)/(e+1))^K / p \le 1$ once $e+1 \ge (p^{1/K} - 1)^{-1}$, so $M_{p,K} := \max_{e \ge 0} \frac{(e+1)^K}{p^e}$ is a finite rational maximum attained at a bounded exponent $e^*(p,K)$. Setting $C(K) = \prod_{p < 2^K} M_{p,K}$ proves $\tau(m)^K \le C(K) m$ for all $m \ge 1$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:a352834}(a)]
+Given $\varepsilon > 0$, choose an integer $K \ge 2$ such that $\frac{1}{K-1} \le \varepsilon$ (and strictly smaller if desired for $a(n)/n^\varepsilon \to 0$). If $a(n) = 0$, the bound is trivial. Otherwise let $k = a(n) \ge 1$ and $m = kn$. By Lemma~\ref{lem:a352834-iff}, $k \le \tau(m)$, so Lemma~\ref{lem:divisor-bound} gives
+\[
+  k^K \le \tau(m)^K \le C(K) k n \implies k^{K-1} \le C(K) n \implies a(n) \le C(K)^{\frac{1}{K-1}} n^{\frac{1}{K-1}}.
+\]
+Choosing $K$ so that $1/(K-1) < \varepsilon$ immediately shows $a(n)/n^\varepsilon \to 0$ as $n \to \infty$.
+\end{proof}
+
+\subsection{Prime-by-Prime Optimization and Reduction to 240 Candidates}
+
+By~\eqref{eq:key-ineq}, maximizing $k^3/n$ reduces to analyzing the multiplicative function $H(m) = \prod_{p} h_p(e_p)$ where $h_p(e) := \frac{(e+1)^4}{p^e}$. For fixed $p$,
+\[
+  \frac{h_p(e+1)}{h_p(e)} = \frac{1}{p}\left(\frac{e+2}{e+1}\right)^4
+\]
+is strictly decreasing in $e \ge 0$, so $h_p$ is unimodal and achieves a unique maximum $M_p$ summarized in Table~\ref{tab:prime-peaks}.
+
+\begin{table}[htbp]
+\centering
+\caption{Prime-by-prime peaks $M_p = \max_{e \ge 0} (e+1)^4/p^e$ for $H(m) = \tau(m)^4/m$.}
+\label{tab:prime-peaks}
+\begin{tabular}{@{}ccccccccc@{}}
+\toprule
+Prime $p$ & $2$ & $3$ & $5$ & $7$ & $11$ & $13$ & $p \ge 17$ \\
+\midrule
+Peak exponent $e^*$ & $5$ & $3$ & $2$ & $1$ & $1$ & $1$ & $0$ \\
+Exact peak $M_p$ & $81/2$ & $256/27$ & $81/25$ & $16/7$ & $16/11$ & $16/13$ & $1$ \\
+Decimal value & $40.5000$ & $9.4815$ & $3.2400$ & $2.2857$ & $1.4545$ & $1.2308$ & $1.0000$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Multiplying these prime maxima yields the unconditional global bound
+\[
+  B := \prod_{p \le 13} M_p = \frac{81}{2}\cdot\frac{256}{27}\cdot\frac{81}{25}\cdot\frac{16}{7}\cdot\frac{16}{11}\cdot\frac{16}{13} = \frac{127401984}{25025} \approx 5090.98837163.
+\]
+Meanwhile, the candidate $(n_0, k_0) = (154440, 840)$ corresponds to $m_0 = 154440 \cdot 840 = 129729600 = 2^6 \cdot 3^4 \cdot 5^2 \cdot 7 \cdot 11 \cdot 13$, which has $\tau(m_0) = 7\cdot 5\cdot 3\cdot 2^3 = 840 = k_0$ and target score
+\[
+  T := \frac{840^3}{154440} = \frac{548800}{143} \approx 3837.76223776.
+\]
+Comparing $H(m) \ge T$ against $B$ eliminates almost all primes and exponents:
+\begin{enumerate}
+  \item For any prime $p \ge 23$ with $e_p \ge 1$, unimodality gives $h_p(e_p) \le h_p(1) = 16/p \le 16/23$, so
+  \[
+    H(m) \le \frac{16}{23} B \approx 3541.557128 < T.
+  \]
+  Hence $e_p = 0$ for every prime $p \ge 23$.
+  \item For $p \in \{17, 19\}$ with $e_p \ge 2$, we have $h_p(e_p) \le h_{17}(2) = 81/289$ (and $B/16 \approx 318.1868 < T$, $(81/289)B \approx 1426.8 < T$), so $e_{17}, e_{19} \in \{0, 1\}$.
+  \item For each $p \in \{2,3,5,7,11,13\}$, requiring $h_p(e_p) \cdot (B/M_p) \ge T$ restricts the exponents to the Cartesian box
+  \begin{align*}
+    e_2 &\in \{3,4,5,6,7\}, & e_3 &\in \{2,3,4\}, & e_5 &\in \{1,2\}, & e_7 &= 1, \\
+    e_{11} &= 1, & e_{13} &\in \{0,1\}, & e_{17} &\in \{0,1\}, & e_{19} &\in \{0,1\},
+  \end{align*}
+  of total cardinality $5 \times 3 \times 2 \times 1 \times 1 \times 2 \times 2 \times 2 = 240$.
+\end{enumerate}
+
+\subsection{Complete Enumeration of Integral Candidates and \texorpdfstring{$a(154440) = 840$}{a(154440) = 840}}
+
+Evaluating the 240 exponent tuples in the box reveals exactly $57$ numbers $m$ satisfying $H(m) \ge T$, and among those only $21$ satisfy the integrality requirement $\tau(m) \mid m$ (meaning $n = m/\tau(m) \in \N$). Table~\ref{tab:21-candidates} records all $21$ integral candidates sorted in descending order of $a(n)^3/n$.
+
+\begin{table}[htbp]
+\centering
+\caption{All $21$ integral candidates ($\tau(m) \mid m$) inside the $240$-box with $H(m) \ge T$, sorted by $a(n)^3/n$.}
+\label{tab:21-candidates}
+{\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}rlrrrrrr@{}}
+\toprule
+Rank & Exponents $(e_2,e_3,e_5,e_7,e_{11},e_{13},e_{17},e_{19})$ & \multicolumn{1}{c}{$m$} & \multicolumn{1}{c}{$\tau(m)$} & \multicolumn{1}{c}{$n = m/\tau(m)$} & \multicolumn{1}{c}{$a(n)$} & \multicolumn{1}{c}{$a(n)^3/n$} & \multicolumn{1}{c}{$a(n)/n^{1/3}$} \\
+\midrule
+1 & $(6,4,2,1,1,1,0,0)$ & $129{,}729{,}600$ & $840$ & $154{,}440$ & $840$ & $3837.762238$ & $15.656428$ \\
+2 & $(5,4,2,1,1,1,0,0)$ & $64{,}864{,}800$ & $720$ & $90{,}090$ & $672$ & $3368.458741$ & $14.990303$ \\
+3 & $(6,3,2,1,1,1,0,0)$ & $43{,}243{,}200$ & $672$ & $64{,}350$ & $432$ & $1252.860420$ & $10.780384$ \\
+4 & $(5,3,2,1,1,0,0,0)$ & $1{,}663{,}200$ & $288$ & $5{,}775$ & $36$ & $8.078961$ & $2.006559$ \\
+5 & $(4,2,2,1,1,1,0,0)$ & $3{,}603{,}600$ & $360$ & $10{,}010$ & $40$ & $6.393606$ & $1.856017$ \\
+6 & $(5,2,1,1,1,0,0,0)$ & $110{,}880$ & $144$ & $770$ & $16$ & $5.319481$ & $1.745647$ \\
+7 & $(4,4,2,1,1,1,0,0)$ & $32{,}432{,}400$ & $600$ & $54{,}054$ & $48$ & $2.045954$ & $1.269498$ \\
+8 & $(4,3,2,1,1,0,0,0)$ & $831{,}600$ & $240$ & $3{,}465$ & $12$ & $0.498701$ & $0.793013$ \\
+9 & $(6,2,2,1,1,1,0,0)$ & $14{,}414{,}400$ & $504$ & $28{,}600$ & $24$ & $0.483357$ & $0.784794$ \\
+10 & $(6,2,1,1,1,1,0,0)$ & $2{,}882{,}880$ & $336$ & $8{,}580$ & $16$ & $0.477389$ & $0.781551$ \\
+11 & $(6,2,2,1,1,1,1,0)$ & $245{,}044{,}800$ & $1{,}008$ & $243{,}100$ & $48$ & $0.454924$ & $0.769094$ \\
+12 & $(6,2,1,1,1,1,1,0)$ & $49{,}008{,}960$ & $672$ & $72{,}930$ & $32$ & $0.449308$ & $0.765916$ \\
+13 & $(5,4,2,1,1,1,1,0)$ & $1{,}102{,}701{,}600$ & $1{,}440$ & $765{,}765$ & $12$ & $0.002257$ & $0.131164$ \\
+14 & $(4,2,1,1,1,1,0,0)$ & $720{,}720$ & $240$ & $3{,}003$ & $1$ & $0.000333$ & $0.069313$ \\
+15 & $(5,2,1,1,1,1,0,0)$ & $1{,}441{,}440$ & $288$ & $5{,}005$ & $1$ & $0.000200$ & $0.058461$ \\
+16 & $(6,3,1,1,1,1,0,0)$ & $8{,}648{,}640$ & $448$ & $19{,}305$ & $1$ & $0.000052$ & $0.037277$ \\
+17 & $(6,3,2,1,1,1,1,0)$ & $735{,}134{,}400$ & $1{,}344$ & $546{,}975$ & $3$ & $0.000049$ & $0.036683$ \\
+18 & $(6,3,2,1,1,1,0,1)$ & $821{,}620{,}800$ & $1{,}344$ & $611{,}325$ & $3$ & $0.000044$ & $0.035348$ \\
+19 & $(5,4,1,1,1,1,0,0)$ & $12{,}972{,}960$ & $480$ & $27{,}027$ & $1$ & $0.000037$ & $0.033322$ \\
+20 & $(4,2,2,1,1,1,1,0)$ & $61{,}261{,}200$ & $720$ & $85{,}085$ & $1$ & $0.000012$ & $0.022736$ \\
+21 & $(4,2,2,1,1,1,0,1)$ & $68{,}468{,}400$ & $720$ & $95{,}095$ & $1$ & $0.000011$ & $0.021909$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\begin{proof}[Proof of Theorem~\ref{thm:a352834}(b)]
+Any $n$ achieving $a(n)^3/n \ge T$ must satisfy $H(m) \ge T$ for $m = a(n)n$. Thus $m$ belongs to the $57$ elements in the $240$-box with $H(m) \ge T$. By~\eqref{eq:key-ineq}, if $a(n) \ne \tau(m)$ then $a(n) \mid \tau(m)$ forces $a(n) \le \tau(m)/2$, whence
+\[
+  \frac{a(n)^3}{n} = \frac{a(n)^4}{m} \le \frac{\tau(m)^4}{16m} = \frac{H(m)}{16} \le \frac{B}{16} \approx 318.1868 < T.
+\]
+Therefore every $n$ with $a(n)^3/n \ge T$ satisfies $a(n) = \tau(m)$ (so $\tau(m) \mid m$ and $n = m/\tau(m)$) and hence lies among the $21$ values in Table~\ref{tab:21-candidates}. Inspecting all $21$ entries confirms that only $n = 154440$ reaches $T$: we verify directly that $154440 \cdot j$ fails $\gcd(\tau(154440j), 154440j) = j$ for all $1 \le j < 840$ (stripping primes $\{2,3,5,7,11,13,17,19,23,29\}$ from $j$ and ruling out any remaining prime factor via $\tau(154440 j) = \tau_{\text{mul}}(j) \cdot \tau(\text{rem})$), while $j = 840$ satisfies $\tau(129729600) = 840 \mid 129729600$. Thus $a(154440) = 840$ is the unique global maximizer of $a(n)/n^{1/3}$.
+\end{proof}
+
+\section{Surjectivity and Infinite Fibers of A304362}
+
+\begin{lemma}[Prime-Power Subset Formula]\label{lem:a304362-formula}
+Let $p_0, \dots, p_{m-1}$ be distinct primes and let $e_0, \dots, e_{m-1} \ge 2$. For $n = \prod_{k=0}^{m-1} p_k^{e_k}$, we have
+\[
+  b(n) = -\sum_{S \subseteq \{0,\dots,m-1\}} (-1)^{|S|} \, \mathbf{1}_{\gcd_k(e_k - \mathbf{1}_{k \in S}) \ge 2}.
+\]
+In addition, $b(p) = 0$ for every prime $p$.
+\end{lemma}
+
+\begin{proof}
+For a prime $p$, its divisors are $1$ and $p$, neither in $\mathcal{P}$, so $b(p) = \mu(p) + \mu(1) = -1 + 1 = 0$. When $n = \prod_k p_k^{e_k}$ with $e_k \ge 2$, the term $\mu(n/d)$ vanishes unless $n/d = \prod_{k \in S} p_k$ for some $S \subseteq \{0,\dots,m-1\}$, in which case $\mu(n/d) = (-1)^{|S|}$ and $d = \prod_k p_k^{e_k - \mathbf{1}_{k \in S}}$. Since $e_k - \mathbf{1}_{k \in S} \ge 1$ for every $k$, we have $d \in \mathcal{P}$ if and only if $\gcd_k(e_k - \mathbf{1}_{k \in S}) \ge 2$. Because $m \ge 1$, $\sum_S (-1)^{|S|} = 0$, giving the identity.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:a304362}]
+The case $z = 0$ is immediate from $b(p) = 0$ for infinitely many primes $p > M$. Fix $r \ge 1$ and any $M \in \N$. Let $q_0 < q_1 < \dots < q_{r-1}$ be the first $r$ primes, set $Q = \prod_{j=0}^{r-1} q_j$, and put $Q_i = Q / q_i$ (taking the empty product $Q_0 = 1$ when $r = 1$). Define explicitly
+\[
+  u_i := Q_i^{q_i - 1} + Q \ge 2 \qquad (0 \le i < r).
+\]
+Since $\gcd(Q_i, q_i) = 1$, Fermat's Little Theorem gives $Q_i^{q_i - 1} \equiv 1 \pmod{q_i}$ (which holds trivially for $r=1$ as $u_0 = 1 + 2 = 3$), while $q_i \mid Q$. Thus $q_i \mid (u_i - 1)$ and $q_i \nmid u_i$. Conversely, for any $j \ne i$, $q_j \mid Q_i$ (with $q_j - 1 \ge 1$) and $q_j \mid Q$, so $q_j \mid u_i$ and $q_j \nmid (u_i - 1)$.
+
+Choose primes $M < p_0 < p_1 < \dots < p_{r+2}$. Note the elementary coprimality facts:
+\[
+  \gcd(Q, 2Q - 1) = 1, \qquad \gcd(Q - 1, 2Q) = 1, \qquad \gcd(Q - 1, 2Q - 1) = 1
+\]
+(the second holds because $Q$ is even, so $\gcd(Q-1, 2) = 1$ and $\gcd(Q-1, Q) = 1$).
+\begin{itemize}
+  \item \textbf{Realizing $+r$:} Set $n_+ = p_0^Q \, p_1^{2Q} \prod_{i=0}^{r-1} p_{i+2}^{u_i} > M$. Suppose a prime $q$ divides every $e_k - \mathbf{1}_{k \in S}$. By the three coprimality identities, $0 \notin S$ and $1 \notin S$; hence $q \mid Q$, so $q = q_i$ for a unique $0 \le i < r$. Divisibility of $u_j - \mathbf{1}_{j+2 \in S}$ by $q_i$ now forces $S = \{i + 2\}$. Thus the surviving subsets in Lemma~\ref{lem:a304362-formula} are precisely the $r$ singletons $\{i+2\}$, yielding $b(n_+) = -\sum_{i=0}^{r-1} (-1)^1 = +r$.
+  \item \textbf{Realizing $-r$:} Set $n_- = n_+ \cdot p_{r+2}^{Q+1} > M$. As above, $0, 1 \notin S$ and $q = q_i$. Since $q_i \mid Q$, we have $q_i \nmid (Q+1)$ and $q_i \mid Q$, forcing $r+2 \in S$. Hence the surviving subsets are precisely the $r$ pairs $\{i+2, r+2\}$ of cardinality $2$, yielding $b(n_-) = -\sum_{i=0}^{r-1} (-1)^2 = -r$.
+\end{itemize}
+As an explicit numerical illustration for $z = -4$, direct subset evaluation of Lemma~\ref{lem:a304362-formula} on $(e_0,e_1,e_2) = (36,21,15)$ verifies $b(2^{36}\cdot 3^{21}\cdot 5^{15}) = -4$.
+\end{proof}
+
+\section{Algebraic Generating Function and Recurrences for A174013}
+
+Let $B(x) = 2x(1 - x - x^2)$, $H(x) = 1 - 3x - x^2$, and $D(x) = H(x)^2 + 2(1 - x) B(x) = 1 - 2x - x^2 + 6x^3 + 5x^4$. Multiplying the quadratic equation
+\[
+  x(1 - x - x^2) A(x)^2 + (1 - 3x - x^2) A(x) - (1 - x) = 0
+\]
+by $2 B(x) = 4x(1 - x - x^2)$ and adding $H(x)^2$ gives
+\[
+  \bigl(B(x) A(x) + H(x)\bigr)^2 = H(x)^2 + 2(1-x) B(x) = D(x),
+\]
+reflecting the exact polynomial identity $H(x)^2 - D(x) = -2(1-x)B(x)$. Moreover, extracting the coefficient of $x^n$ ($n \ge 1$) recursively shows that $a_0 = 1$ and the quadratic equation uniquely determine every $a_n \in \Z$:
+\[
+  a_n = -\mathbf{1}_{n=1} + 3 a_{n-1} + a_{n-2} - \bigl(c_{n-1} - c_{n-2} - c_{n-3}\bigr), \qquad c_m := \sum_{i=0}^{m} a_i a_{m-i}.
+\]
+For $0 \le n \le 13$, this recurrence yields the sequence
+\[
+  1,\, 1,\, 3,\, 6,\, 12,\, 22,\, 37,\, 56,\, 73,\, 75,\, 44,\, -21,\, -39,\, 297.
+\]
+
+\begin{proof}[Proof of Theorem~\ref{thm:a174013}]
+Put $Y(x) := B(x) A(x) + H(x) \in \Q[[x]]$, so that $Y^2 = D$. Differentiating gives $2 Y Y' = D'$; multiplying both sides by $Y$ and replacing $Y^2$ by $D$ removes the square root:
+\[
+  2 D(x) Y'(x) = D'(x) Y(x).
+\]
+Substituting $Y = B A + H$ and $Y' = B A' + B' A + H'$ yields the linear ODE
+\[
+  P(x) A'(x) + Q(x) A(x) = R(x),
+\]
+where $P = 2 D B$, $Q = 2 D B' - D' B$, and $R = D' H - 2 D H'$. Direct polynomial arithmetic shows that $4$ divides all three polynomials:
+\begin{align*}
+  P(x)/4 &= x - 3x^2 + 9x^4 - 11x^6 - 5x^7, \\
+  Q(x)/4 &= 1 - 3x + 3x^3 - 6x^4 - 9x^5 - 5x^6, \\
+  R(x)/4 &= 1 - x + 3x^2 - 6x^4.
+\end{align*}
+Dividing the ODE by $4$ and extracting $[x^n]$ (with $a_k = 0$ for $k < 0$) defines the $6$-th order linear operator
+\[
+  E_n := (n+1)a_n - 3na_{n-1} + (9n-24)a_{n-3} - 6a_{n-4} + (46-11n)a_{n-5} + (25-5n)a_{n-6},
+\]
+which satisfies $E_n = [x^n](R/4)$ for all $n \ge 0$ (indeed, $[E_0,E_1,E_2,E_3,E_4] = [1,-1,3,0,-6]$). Because $\deg(R/4) = 4$, we have $[x^n](R/4) = 0$ for all $n \ge 5$, proving $E_n = 0$ for all $n \ge 5$.
+
+Finally, R.~J.~Mathar's $7$-th order operator is defined for $n \ge 0$ by
+\begin{align*}
+  M_n &:= (n+1)a_n + na_{n-1} + 12(1-n)a_{n-2} + (9n-24)a_{n-3} + (36n-138)a_{n-4} \\
+      &\quad + (22-11n)a_{n-5} + (253-49n)a_{n-6} + (120-20n)a_{n-7}.
+\end{align*}
+Comparing coefficients of $a_{n-k}$ ($0 \le k \le 7$) between $M_n$ and $E_n + 4 E_{n-1}$ gives:
+\begin{itemize}
+  \item $a_n$: $(n+1) + 0 = n+1$;
+  \item $a_{n-1}$: $-3n + 4n = n$;
+  \item $a_{n-2}$: $0 + 4(-3(n-1)) = 12(1-n)$;
+  \item $a_{n-3}$: $(9n-24) + 0 = 9n-24$;
+  \item $a_{n-4}$: $-6 + 4(9(n-1)-24) = 36n - 138$;
+  \item $a_{n-5}$: $(46-11n) + 4(-6) = 22 - 11n$;
+  \item $a_{n-6}$: $(25-5n) + 4(46-11(n-1)) = 253 - 49n$;
+  \item $a_{n-7}$: $0 + 4(25-5(n-1)) = 120 - 20n$.
+\end{itemize}
+Thus $M_n = E_n + 4 E_{n-1}$ identically for all $n \ge 1$. Since $E_k = 0$ for all $k \ge 5$, it follows that $M_n = 0$ for every $n \ge 6$ (including $n = 6$, whereas $M_5 = E_5 + 4 E_4 = -24 \ne 0$).
+\end{proof}
+
+\section{Formal Verification in Lean 4}
+
+Every result in Sections~2--4 has been formalized in Lean~4 (\texttt{v4.36.0}) against Mathlib4 (\texttt{v4.36.0}) inside the root library \texttt{OEISThreeProofs.lean} and three self-contained modules:
+\begin{itemize}
+  \item \texttt{OEISThreeProofs/A352834.lean}: formalizes $\tau(m)$, \texttt{IsValidA352834}, the denominator equivalence, Bernoulli's divisor bound, peak optimization, the $240$-box reduction via five binary-split kernel-verified \texttt{decide} slices (\texttt{slice3\_ok}--\texttt{slice7\_ok}) using modulus checks instead of well-founded \texttt{Nat.gcd} recursion, the verification $a(154440) = 840$, and the real extremum inequality over $\R$.
+  \item \texttt{OEISThreeProofs/A304362.lean}: formalizes \texttt{IsPerfectPower}, $b(n)$, the prime and prime-power subset formulas, the example $b(2^{36}\cdot 3^{21}\cdot 5^{15}) = -4$, and the explicit Fermat--CRT constructions for $+r$ and $-r$.
+  \item \texttt{OEISThreeProofs/A174013.lean}: formalizes the formal power series recursion, quadratic identity, factorization $H^2 - D = -2(1-x)B$, ODE derivation, $6$-th order recurrence $E_n=0$ ($n \ge 5$), Mathar's $7$-th order recurrence $M_n = 0$ ($n \ge 6$), and initial terms $n \le 10$.
+\end{itemize}
+
+All computational verifications execute strictly inside Lean's trusted kernel via \texttt{decide}, avoiding \texttt{native\_decide} and the compiler trust axiom. An automated \texttt{\#print axioms} audit confirms that every theorem in Table~\ref{tab:lean-audit} depends solely on the standard foundation \{\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}\}.
+
+\begin{table}[htbp]
+\centering
+\caption{Lean~4 formalization map and axiom audit summary (zero \texttt{sorryAx}, no \texttt{native\_decide}).}
+\label{tab:lean-audit}
+{\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+Result & Lean~4 Theorem (\texttt{OEISThreeProofs.*}) & Axioms \\
+\midrule
+Lemma~\ref{lem:a352834-iff} & \texttt{A352834.IsValidA352834\_iff\_den} & standard \\
+Lemma~\ref{lem:divisor-bound} & \texttt{A352834.divisor\_bound\_explicit} & standard \\
+Theorem~\ref{thm:a352834}(a) & \texttt{A352834.a352834\_subpolynomial} & standard \\
+$a(154440)=840$ & \texttt{A352834.a352834\_154440} & standard \\
+Theorem~\ref{thm:a352834}(b) & \texttt{A352834.a352834\_global\_bound}, \texttt{a352834\_strict\_of\_ne} & standard \\
+ & \texttt{A352834.a352834\_real\_extremum} & standard \\
+\midrule
+Lemma~\ref{lem:a304362-formula} & \texttt{A304362.b304362\_prime} & standard \\
+Example $b=-4$ & \texttt{A304362.b304362\_example} & standard \\
+Theorem~\ref{thm:a304362} & \texttt{A304362.a304362\_infinite\_fibers}, \texttt{a304362\_surjective} & standard \\
+\midrule
+Quadratic & \texttt{A174013.A174013\_quadratic}, \texttt{A174013\_genfun\_sq} & standard \\
+Uniqueness & \texttt{A174013.A174013\_unique} & standard \\
+ODE & \texttt{A174013.ode\_of\_genfun\_sq} & standard \\
+Theorem~\ref{thm:a174013}(a) & \texttt{A174013.a174013\_sixth\_order} & standard \\
+Theorem~\ref{thm:a174013}(b) & \texttt{A174013.a174013\_mathar\_recurrence}, \texttt{a174013\_initial\_terms} & standard \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+{\small
+\begin{thebibliography}{9}
+\setlength{\itemsep}{2pt}
+\bibitem{oeis}
+OEIS Foundation Inc., \emph{The On-Line Encyclopedia of Integer Sequences}, entries \href{https://oeis.org/A352834}{A352834}, \href{https://oeis.org/A304362}{A304362}, \href{https://oeis.org/A174013}{A174013}, and \href{https://oeis.org/A263160}{A263160}.
+
+\bibitem{lean4}
+L.~de~Moura and S.~Ullrich, \emph{The Lean~4 theorem prover and programming language}, in Automated Deduction -- CADE 28, Lecture Notes in Comput.\ Sci.~12699, Springer, 2021, pp.~625--635.
+
+\bibitem{mathlib4}
+The mathlib Community, \emph{Mathlib4} (Lean~4 mathematical library, tag \texttt{v4.36.0}), \url{https://github.com/leanprover-community/mathlib4}.
+
+\bibitem{tao-divisor}
+T.~Tao, \emph{The divisor bound}, elementary note on $\tau(n) = O_\varepsilon(n^\varepsilon)$ via prime-power splitting, \emph{What's New}.
+
+\bibitem{phuc2026}
+L.~D.~Phuc, \emph{Proof of the OEIS A263160 conjecture}, Zenodo, November~25, 2026, \url{https://doi.org/10.5281/zenodo.24520339}.
+\end{thebibliography}
+}
+
+\end{document}
