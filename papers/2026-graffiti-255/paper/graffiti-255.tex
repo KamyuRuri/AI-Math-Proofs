@@ -1,0 +1,151 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper,margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,url}
+\urlstyle{same}
+\urldef\repourl\url{https://github.com/KamyuRuri/AI-Math-Proofs}
+\newtheorem{theorem}{Theorem}
+\newcommand{\gtot}{\gamma_{\mathrm t}}
+\newcommand{\ec}{\operatorname{ecc}}
+\raggedbottom
+\title{An 11-vertex counterexample to Graffiti.pc Conjecture 255\\
+  \large Minimum order and the sharp universal constant}
+\author{ChatGPT (OpenAI, GPT-6), Gemini, and JiaZhuang Wang%
+  \thanks{Corresponding author. Repository:
+  \repourl.}}
+\date{November 27, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Graffiti.pc Conjecture 255 relates the total domination number of a connected
+graph to the size of its center and the largest neighborhood of an edge.
+Subdividing the five edges incident with one vertex of \(K_6\) gives an
+11-vertex graph on which the conjecture asserts \(21\ge22\).
+We prove that 11 is the minimum order of a counterexample and extend the
+construction to an infinite family. We also determine the largest coefficient
+that can replace the conjectured factor \(2\): it is \(1\), as shown by an
+augmented family of rook graphs.
+\end{abstract}
+
+\section{The conjecture and a family of counterexamples}
+Let \(G=(V,E)\) be a finite simple connected graph of order \(n\ge2\).
+Write \(N(v)\) for the open neighborhood of \(v\). A total dominating set
+is a set \(D\subseteq V\) for which \(\bigcup_{v\in D}N(v)=V\);
+its minimum cardinality is \(\gtot(G)\). Write \(C(G)\) for the vertices
+of minimum eccentricity, where \(\ec(v)=\max_{w\in V}d(v,w)\), and set
+\[
+ M(G)=\max_{uv\in E}|N(u)\cup N(v)|.
+\]
+Each endpoint of \(uv\) belongs to this union through the other endpoint.
+Conjecture 255 in Ermelinda DeLaVi\~na's \emph{Written on the Wall II}
+(February 23, 2007) proposes \(\gtot(G)M(G)\ge 2|C(G)|\).
+
+\begin{theorem}
+For \(t\ge2\), let \(G_t\) be obtained from \(K_{t+1}\) by subdividing
+each edge at a fixed vertex once. Then
+\[
+ |C(G_t)|=2t+1,\qquad M(G_t)=t+2,\qquad \gtot(G_t)=3.
+\]
+In particular, \(2|C(G_t)|-\gtot(G_t)M(G_t)=t-4\).
+\end{theorem}
+\begin{proof}
+Call the fixed vertex \(x\), the remaining clique \(A=\{a_1,\ldots,a_t\}\),
+and the subdivision vertices \(B=\{b_1,\ldots,b_t\}\), with paths
+\(x b_i a_i\). Every pair is at distance at most two. In particular,
+\(b_i,b_j\) share \(x\), and for \(i\ne j\) the path from \(b_i\) to \(a_j\)
+goes through \(a_i\). No vertex is universal, so all have eccentricity two.
+
+For edges of the three types \(a_i a_j,\ a_i b_i,\ xb_i\), the neighborhood
+unions are respectively
+\[
+ A\cup\{b_i,b_j\},\qquad A\cup\{b_i,x\},\qquad B\cup\{x,a_i\}.
+\]
+All have size \(t+2\). The set \(\{x,b_1,a_1\}\) totally dominates \(G_t\).
+A pair that totally dominates must itself form an edge, whose neighborhood
+union would then have size \(2t+1\). Since \(t+2<2t+1\), no pair suffices.
+Substitution gives the claimed difference.
+\end{proof}
+
+\section{Why eleven vertices are necessary}
+The graph \(G_5\) has 11 vertices, 20 edges, and \(\gtot M=3\cdot7=21\),
+whereas \(2|C|=22\). DeLaVi\~na's catalogue reports that all connected
+graphs through order ten were previously checked. The following proof
+establishes the same lower bound directly.
+
+\begin{theorem}
+Every counterexample to Conjecture 255 has at least 11 vertices.
+\end{theorem}
+\begin{proof}
+Put \(s=\gtot(G)\), \(M=M(G)\), and \(\Delta=\max_v |N(v)|\).
+In a counterexample \(sM<2|C|\le2n\). If \(s=2\), a total dominating
+edge has neighborhood union \(V\), giving \(sM=2n\).
+
+If \(s=3\), a minimum total dominating set induces a graph on three
+vertices without isolates. Label them \(u,v,w\) with \(uv,vw\in E\).
+The two edge neighborhoods cover \(V\). Each contains all of \(u,v,w\),
+so \(n\le 2M-3\). It follows that \(3M<2n\le4M-6\), hence \(M\ge7\)
+and \(2n>3M\ge21\).
+
+It remains to exclude \(s\ge4\) and \(n\le10\) simultaneously.
+These inequalities give \(4M\le sM<2n\le20\), so \(M\le4\).
+A universal vertex and any one neighbor form a total dominating pair,
+so no vertex is universal. Take a vertex \(v\) of degree \(\Delta\) and,
+by connectivity, a vertex \(z\) at distance two along a path \(v,w,z\).
+The union \(N(v)\cup N(w)\) contains \(N(v)\) as well as \(v\) and \(z\).
+Thus \(M\ge\Delta+2\) and \(\Delta\le2\), which yields \(M\ge2\Delta\).
+The \(s\) open neighborhoods of a total dominating set cover \(V\), so
+\(s\Delta\ge n\). Now \(sM\ge2n\), a contradiction.
+\end{proof}
+
+\section{The sharp coefficient}
+\begin{theorem}
+Over all finite simple connected graphs of order at least two,
+\[
+ \inf_G\frac{\gtot(G)M(G)}{|C(G)|}=1.
+\]
+\end{theorem}
+\begin{proof}
+An edge incident with a vertex of maximum degree shows \(M\ge\Delta\).
+The covering bound \(s\Delta\ge n\) therefore gives \(sM\ge n\ge|C|\).
+
+For the reverse inequality fix \(k\ge2\), set \(q=k^2\), and start with
+the \(q\)-by-\(q\) rook graph (cells sharing a row or a column are adjacent).
+Partition the rows into \(k\) groups of \(k\) rows. For each group add a
+hub joined to every cell in those rows, and add an apex \(x\) joined to
+all hubs. These are all the edges of the resulting graph \(H_k\).
+
+Two cells have distance at most two on the board. From a hub to a cell
+outside its group, use any cell of the group in the target column.
+Two hubs share \(x\), and \(x\) reaches every cell through its hub.
+No vertex is universal, so \(|C(H_k)|=|V(H_k)|=k^4+k+1\).
+The apex and all hubs form a total dominating set of size \(k+1\).
+The degrees of a cell, a hub, and the apex are respectively
+\(2k^2-1,\ k^3+1,\ k\). Hubs are pairwise nonadjacent. On every edge
+one endpoint therefore has degree at most \(2k^2-1\), and the other
+has degree at most \(k^3+1\). Bounding the union by the degree sum gives
+\[
+ 1\le\frac{\gtot(H_k)M(H_k)}{|C(H_k)|}
+ \le\frac{(k+1)(k^3+2k^2)}{k^4+k+1}\longrightarrow 1 .
+\]
+Thus every coefficient strictly larger than one fails on some \(H_k\).
+\end{proof}
+
+\paragraph{Computational checks.}
+The accompanying Python script reconstructs the graphs from their edge
+lists, computes eccentricities by breadth-first search, and counts the
+minimum total dominating sets of \(G_5\) by testing vertex subsets in
+increasing size. It finds five such triples. It checks \(G_t\) for
+\(2\le t\le12\), bounds on \(H_k\) for \(k=2,3,4\), and all 27,475
+connected labeled graphs of orders two through six. The proofs above cover
+the full parameter ranges.
+
+\paragraph{Source.}\raggedright
+Ermelinda DeLaVi\~na, \emph{Written on the Wall II: Conjectures of
+Graffiti.pc}, University of Houston--Downtown, entry 255 and catalogue
+introduction. The catalogue credits the original bounded computation;
+its November 21, 2026 note credits Tony Newton with a 14-vertex
+counterexample to entry 256, whose numerator uses the neighborhood of
+the minimum-degree vertices. Searches by conjecture number and invariants on
+GitHub, arXiv, and Zenodo, did not identify an earlier resolution of entry
+255. The original catalogue is available at\par\noindent
+\url{https://www.uhd.edu/academics/sciences/mathematics-statistics/wowii/index.html}.
+\end{document}

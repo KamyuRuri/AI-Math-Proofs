@@ -22,7 +22,9 @@ A curated collection of mathematical proofs, **Lean 4 / Mathlib4** formal verifi
 
 ### Combinatorics & Discrete Mathematics / 组合数学与离散数学
 
-*(More papers will be added here as the collection grows.)*
+| Year | Title & Scope / 论文与研究范围 | Formal Verification | Materials / 资料直达 |
+| :---: | :--- | :--- | :--- |
+| **2026** | **An 11-vertex counterexample to Graffiti.pc Conjecture 255**. Minimum counterexample order 11, an infinite family with deficit $t-4$, and sharp universal coefficient $1$. | Written proofs and exact Python checks. Lean formalization unverified and omitted from this release. | [Folder](papers/2026-graffiti-255/) · [PDF](papers/2026-graffiti-255/paper/graffiti-255.pdf) · [TeX](papers/2026-graffiti-255/paper/graffiti-255.tex) · [Script](papers/2026-graffiti-255/scripts/verify_graffiti255.py) |
 
 ### Algebra & Analysis / 代数与分析
 
