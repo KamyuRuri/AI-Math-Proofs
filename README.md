@@ -24,6 +24,7 @@ A curated collection of mathematical proofs, **Lean 4 / Mathlib4** formal verifi
 
 | Year | Title & Scope / 论文与研究范围 | Formal Verification | Materials / 资料直达 |
 | :---: | :--- | :--- | :--- |
+| **2026** | **A sharp bound on the distance between maximum-degree vertices** (Graffiti.pc 271). Proves $k^2\ge 2d_M$, characterizes equality, and proves sharpness. | Written proof and exact Python checks on 27,475 labeled graphs. No Lean formalization. | [Folder](papers/2026-graffiti-271/) / [PDF](papers/2026-graffiti-271/paper/graffiti-271.pdf) / [TeX](papers/2026-graffiti-271/paper/graffiti-271.tex) / [Script](papers/2026-graffiti-271/scripts/verify_graffiti271.py) |
 | **2026** | **An 11-vertex counterexample to Graffiti.pc Conjecture 255**. Minimum counterexample order 11, an infinite family with deficit $t-4$, and sharp universal coefficient $1$. | Written proofs and exact Python checks. Lean formalization unverified and omitted from this release. | [Folder](papers/2026-graffiti-255/) · [PDF](papers/2026-graffiti-255/paper/graffiti-255.pdf) · [TeX](papers/2026-graffiti-255/paper/graffiti-255.tex) · [Script](papers/2026-graffiti-255/scripts/verify_graffiti255.py) |
 
 ### Algebra & Analysis / 代数与分析

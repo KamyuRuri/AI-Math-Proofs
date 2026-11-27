@@ -1,0 +1,131 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper,left=1.12in,right=1.12in,top=0.9in,bottom=0.9in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,url}
+\urlstyle{same}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newcommand{\gt}{\gamma_{\mathrm t}}
+\newcommand{\dM}{d_M}
+\newcommand{\diam}{\operatorname{diam}}
+\pdfinfo{/Author (ChatGPT) /Title (A sharp bound on the distance between maximum-degree vertices) /Subject (Graffiti.pc Conjecture 271)}
+\raggedbottom
+\title{A sharp bound on the distance between\\maximum-degree vertices\\[3pt]
+  \large A proof of Graffiti.pc Conjecture 271}
+\author{ChatGPT}
+\date{November 27, 2026}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Let \(M\) be the set of vertices of maximum degree in a connected graph and let
+\(d_M\) be the greatest distance in the graph between two members of \(M\).
+We prove \(\gt(G)^2\ge 2d_M\), where \(\gt(G)\) is the total domination number.
+This proves Conjecture 271 of \emph{Written on the Wall II}. A count of
+distance layers settles the case \(\gt(G)\ge3\). For \(\gt(G)=2\), two
+disjoint neighborhoods would require more vertices than the graph contains.
+We characterize equality and exhibit infinitely many examples attaining it.
+\end{abstract}
+
+\section{The conjecture and the distance bound}
+Let \(G=(V,E)\) be a finite simple connected graph of order \(n\ge2\).
+Write \(N(v)\) for the open neighborhood of \(v\), \(\Delta\) for the maximum
+degree, and \(M=\{v\in V:\deg v=\Delta\}\). Define
+\[
+  \dM=\max_{x,y\in M} d_G(x,y).
+\]
+Distances are measured in \(G\), and \(\dM=0\) when \(M\) has one vertex.
+A total dominating set \(D\) satisfies \(\bigcup_{v\in D}N(v)=V\).
+In particular, each vertex in \(D\) has a neighbor in \(D\).
+Write \(k=\gt(G)\) for the minimum size of such a set.
+
+\begin{theorem}[Graffiti.pc Conjecture 271]
+Every such graph satisfies \(k\ge \lceil\sqrt{2\dM}\rceil\).
+The coefficient \(2\) is best possible.
+\end{theorem}
+
+DeLaVi\~na's catalogue records the conjecture on February 23, 2007~[1].
+DeLaVi\~na, Liu, Pepper, Waller, and West~[2, Lemma~3 and (5)] proved a
+diameter bound in terms of \(k\) and the number of components of a minimum
+total dominating set. In particular, \(\diam(G)\le 2k-1\). We give a
+distance-layer proof of their component bound so that the argument is
+self-contained.
+
+\begin{lemma}
+If a minimum total dominating set \(D\) induces \(c\) connected components,
+then \(\diam(G)+1\le k+2c\) and \(c\le\lfloor k/2\rfloor\).
+\end{lemma}
+\begin{proof}
+Fix an endpoint \(x\) of a diametrical path. The distances from \(x\) along
+the path take every integer value from \(0\) to \(\diam(G)\). For a
+component \(C\) of \(G[D]\) on \(r\) vertices, the largest and smallest
+distances from \(x\) to vertices in \(C\) differ by at most \(r-1\):
+any two vertices of \(C\) are joined in \(C\) by a path of at most \(r-1\)
+edges. A neighbor of \(C\) lies at most one level beyond this range in
+either direction. Thus the neighbors of \(C\) occupy at most \(r+2\) levels.
+Every vertex has a neighbor in \(D\), so these ranges cover all
+\(\diam(G)+1\) levels. Summing gives the first inequality.
+Each component contains at least two vertices, giving the second.
+\end{proof}
+
+\newpage
+\section{Proof of the conjecture and equality}
+Since \(k\) is an integer, the claimed inequality is equivalent to
+\(k^2\ge 2\dM\). If \(k=3\), the lemma gives \(c=1\) and hence
+\(\dM\le\diam(G)\le4\), so \(2\dM\le8<9\). If \(k\ge4\), the same lemma
+gives
+\[
+  2\dM\le 2\diam(G)\le 4k-2 < k^2.
+\]
+It remains to consider \(k=2\), the smallest possible value.
+
+Take a total dominating pair \(a,b\). Its endpoints are adjacent, and
+\(N(a)\cup N(b)=V\). In particular,
+\[
+  n\le \deg(a)+\deg(b)\le 2\Delta.
+\]
+If \(x,y\in M\) were at distance at least three, they would be nonadjacent
+and have disjoint neighborhoods. The sets \(\{x,y\},N(x),N(y)\) would
+therefore be pairwise disjoint, giving \(n\ge 2+2\Delta\), a contradiction.
+Thus \(\dM\le2\), as required.
+
+Equality in the \emph{unrounded} inequality \(k^2\ge 2\dM\) holds precisely
+when \(G\) has a total dominating pair and two nonadjacent vertices of
+maximum degree. Indeed, the strict bounds above force \(k=2\), and in
+that case \(\dM=2\) is equivalent to the existence of such nonadjacent
+vertices. For every \(m\ge2\), the complete bipartite graph \(K_{m,m}\)
+has all vertices of degree \(m\). Two vertices in the same part are at
+distance two, and the endpoints of any edge totally dominate the graph.
+Consequently \(k^2=4=2\dM\) throughout this family, starting with \(C_4\).
+This proves sharpness.
+
+\section{Finite verification}
+The accompanying Python program enumerates every edge subset on the
+labeled vertex set \(\{0,\ldots,n-1\}\) for \(2\le n\le6\), retaining only
+connected graphs. It computes \(k\) by testing vertex subsets in order of
+size and \(\dM\) by breadth-first search from each vertex of maximum degree.
+It checks both the inequality and the equality characterization.
+The counts below concern labeled graphs and equality before rounding.
+\begin{center}
+\begin{tabular}{lrrrrr}
+\hline
+Order \(n\) & 2 & 3 & 4 & 5 & 6\\
+\hline
+Connected graphs & 1 & 4 & 38 & 728 & 26,704\\
+Equality \(k^2=2\dM\) & 0 & 0 & 3 & 40 & 2,365\\
+\hline
+\end{tabular}
+\end{center}
+
+\section*{References}
+\small\raggedright
+\noindent[1] E. DeLaVi\~na. \emph{Written on the Wall II: Conjectures of
+Graffiti.pc}. University of Houston--Downtown, Conjecture 271, February 23,
+2007. Catalogue consulted November 27, 2026.\\
+\url{https://www.uhd.edu/academics/sciences/mathematics-statistics/wowii/index.html}
+
+\smallskip
+\noindent[2] E. DeLaVi\~na, Q. Liu, R. Pepper, B. Waller, and D. B. West.
+Some conjectures of Graffiti.pc on total domination. \emph{Congressus
+Numerantium} \textbf{185} (2007), 81--95.\\
+\url{https://www.uhd.edu/documents/academics/sciences/total-dom-2007.pdf}
+\end{document}
